@@ -8,6 +8,8 @@ class Game {
     #isPlaying = false;
     #lastTime = performance.now();
     #targets = [];
+    #leaderboard = [];
+    #currentSessionStartTime = null;
 
     constructor() {
         this.initDOM();
@@ -178,6 +180,7 @@ class Game {
         this.#timeRemaining = 20.0;
         this.#isPlaying = true;
         this.#lastTime = performance.now();
+        this.#currentSessionStartTime = new Date();
 
         this.updateScoreDisplay();
         this.updateTimeDisplay();
@@ -195,7 +198,7 @@ class Game {
         this.camera.rotation.set(0, 0, 0, 'YXZ');
 
         // Spawn 50 targets
-        for (let i = 0; i < 40; i++) {
+        for (let i = 0; i < 50; i++) {
             this.spawnTarget();
         }
     }
@@ -208,6 +211,28 @@ class Game {
         this.resultScreen.classList.remove('hidden');
 
         this.finalScore.innerText = this.#score;
+
+        // Record score to leaderboard
+        this.#leaderboard.push({
+            score: this.#score,
+            time: this.#currentSessionStartTime
+        });
+        
+        // Sort descending by score
+        this.#leaderboard.sort((a, b) => b.score - a.score);
+        
+        // Update leaderboard UI
+        const rankingList = document.getElementById('ranking-list');
+        rankingList.innerHTML = '';
+        
+        for (let i = 0; i < Math.min(3, this.#leaderboard.length); i++) {
+            const entry = this.#leaderboard[i];
+            const dateStr = entry.time.toLocaleTimeString('ja-JP'); 
+            
+            const li = document.createElement('li');
+            li.innerHTML = `<span class="rank-score">${i + 1}位: ${entry.score} pts</span> <span class="rank-time">(${dateStr} 開始)</span>`;
+            rankingList.appendChild(li);
+        }
 
         // Reset Title screen text for next potential play
         document.querySelector('#title-screen h1').innerText = "STAR-SPHERE SHOOTER";

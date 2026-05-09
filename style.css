@@ -176,3 +176,50 @@ p {
     font-size: 2rem;
     margin-bottom: 2rem;
 }
+
+/* Leaderboard styles */
+.leaderboard {
+    margin: 1.5rem 0;
+    padding: 1.5rem;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: left;
+}
+
+.leaderboard h3 {
+    text-align: center;
+    color: var(--primary);
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+    letter-spacing: 2px;
+}
+
+#ranking-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#ranking-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 1.2rem;
+}
+
+#ranking-list li:last-child {
+    border-bottom: none;
+}
+
+.rank-score {
+    font-weight: bold;
+    color: #fff;
+}
+
+.rank-time {
+    color: #aaa;
+    font-size: 1rem;
+}
