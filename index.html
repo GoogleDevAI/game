@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STAR-SPHERE SHOOTER</title>
+    <meta name="description" content="A 360-degree space shooter game.">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+<body>
+    <div id="ui-container">
+        <!-- Title Screen -->
+        <div id="title-screen" class="screen glass-panel">
+            <h1>STAR-SPHERE SHOOTER</h1>
+            <p>Destroy 20 targets in 20 seconds.<br>Click to start & lock pointer.<br>Use Mouse to aim, WASD for auxiliary rotation.</p>
+            <button id="start-btn" class="glow-btn">START MISSION</button>
+        </div>
+
+        <!-- HUD -->
+        <div id="hud" class="screen hidden">
+            <div class="hud-top">
+                <div class="hud-box">Time: <span id="time-display">20.0</span>s</div>
+                <div class="hud-box">Score: <span id="score-display">0</span></div>
+            </div>
+            <div id="crosshair"></div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="screen hidden glass-panel">
+            <h2>MISSION COMPLETE</h2>
+            <div class="score-display">
+                Final Score: <span id="final-score">0</span>
+            </div>
+            <button id="replay-btn" class="glow-btn">PLAY AGAIN</button>
+        </div>
+    </div>
+
+    <!-- Main Game Script -->
+    <script type="module" src="main.js"></script>
+</body>
+</html>

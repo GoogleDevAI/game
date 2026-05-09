@@ -1,0 +1,178 @@
+:root {
+    --primary: #00d2ff;
+    --secondary: #3a7bd5;
+    --bg-dark: #050b14;
+    --glass-bg: rgba(10, 20, 40, 0.6);
+    --glass-border: rgba(0, 210, 255, 0.3);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Outfit', sans-serif;
+    background-color: var(--bg-dark);
+    color: white;
+    overflow: hidden; /* Prevent scrolling */
+    user-select: none;
+}
+
+#ui-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none; /* Let clicks pass through to canvas when playing */
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.3s ease;
+}
+
+.screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 4rem;
+    box-shadow: 0 0 40px rgba(0, 210, 255, 0.2), inset 0 0 20px rgba(0, 210, 255, 0.1);
+    text-align: center;
+    pointer-events: auto; /* Enable clicks on panels */
+    width: auto;
+    height: auto;
+    min-width: 500px;
+}
+
+h1 {
+    font-size: 3.5rem;
+    font-weight: 900;
+    margin-bottom: 1rem;
+    background: linear-gradient(to right, var(--primary), #ffffff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 20px rgba(0, 210, 255, 0.5);
+}
+
+h2 {
+    font-size: 3rem;
+    margin-bottom: 1.5rem;
+    color: var(--primary);
+    text-shadow: 0 0 10px rgba(0, 210, 255, 0.5);
+}
+
+p {
+    font-size: 1.2rem;
+    margin-bottom: 2.5rem;
+    line-height: 1.6;
+    color: #ccc;
+}
+
+.glow-btn {
+    background: linear-gradient(45deg, var(--secondary), var(--primary));
+    border: none;
+    padding: 15px 40px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    font-family: inherit;
+    color: white;
+    border-radius: 30px;
+    cursor: pointer;
+    box-shadow: 0 0 20px rgba(0, 210, 255, 0.4);
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.glow-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px rgba(0, 210, 255, 0.8);
+}
+
+.glow-btn:active {
+    transform: scale(0.95);
+}
+
+/* HUD elements */
+#hud {
+    justify-content: space-between;
+}
+
+.hud-top {
+    position: absolute;
+    top: 20px;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 40px;
+}
+
+.hud-box {
+    background: var(--glass-bg);
+    backdrop-filter: blur(5px);
+    border: 1px solid var(--glass-border);
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
+    text-shadow: 0 0 5px rgba(0, 210, 255, 0.5);
+}
+
+#crosshair {
+    width: 20px;
+    height: 20px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+#crosshair::before, #crosshair::after {
+    content: '';
+    position: absolute;
+    background: rgba(0, 255, 0, 0.8);
+    box-shadow: 0 0 5px #0f0;
+}
+
+#crosshair::before {
+    top: 9px;
+    left: 0;
+    width: 20px;
+    height: 2px;
+}
+
+#crosshair::after {
+    top: 0;
+    left: 9px;
+    width: 2px;
+    height: 20px;
+}
+
+.score-display {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+}
