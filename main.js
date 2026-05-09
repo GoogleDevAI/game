@@ -10,6 +10,8 @@ class Game {
     #targets = [];
     #leaderboard = [];
     #currentSessionStartTime = null;
+    #isTouchDevice = false;
+    #gyroInitialized = false;
 
     constructor() {
         this.initDOM();
@@ -29,13 +31,23 @@ class Game {
         this.timeDisplay = document.getElementById('time-display');
         this.scoreDisplay = document.getElementById('score-display');
         this.finalScore = document.getElementById('final-score');
+        
+        this.#isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 
         document.getElementById('start-btn').addEventListener('click', () => {
-            this.controls.lock();
+            if (this.#isTouchDevice) {
+                this.requestMobilePermissionsAndStart();
+            } else {
+                this.controls.lock();
+            }
         });
 
         document.getElementById('replay-btn').addEventListener('click', () => {
-            this.controls.lock();
+            if (this.#isTouchDevice) {
+                this.requestMobilePermissionsAndStart();
+            } else {
+                this.controls.lock();
+            }
         });
     }
 
@@ -138,10 +150,99 @@ class Game {
             const key = e.key.toLowerCase();
             if (this.keys.hasOwnProperty(key)) this.keys[key] = false;
         });
+
+        // Mobile Touch Controls
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let lastTouchX = 0;
+        let lastTouchY = 0;
+
+        document.addEventListener('touchstart', (e) => {
+            if (!this.#isPlaying) return;
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            lastTouchX = touchStartX;
+            lastTouchY = touchStartY;
+        }, { passive: false });
+
+        document.addEventListener('touchmove', (e) => {
+            if (!this.#isPlaying) return;
+            e.preventDefault(); // Prevent scrolling
+            const currentX = e.touches[0].clientX;
+            const currentY = e.touches[0].clientY;
+            
+            const deltaX = currentX - lastTouchX;
+            const deltaY = currentY - lastTouchY;
+            
+            this.applyRotation(-deltaX * 0.005, -deltaY * 0.005);
+            
+            lastTouchX = currentX;
+            lastTouchY = currentY;
+        }, { passive: false });
+
+        document.addEventListener('touchend', (e) => {
+            if (!this.#isPlaying) return;
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            
+            // If movement is very small, treat as a tap (shoot)
+            const dist = Math.hypot(touchEndX - touchStartX, touchEndY - touchStartY);
+            if (dist < 10) {
+                this.shoot();
+            }
+        });
     }
 
     initAudio() {
         // Audio would be added here (Nice to have)
+    }
+
+    requestMobilePermissionsAndStart() {
+        if (this.#isPlaying) return;
+
+        if (!this.#gyroInitialized) {
+            if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                DeviceMotionEvent.requestPermission()
+                    .then(permissionState => {
+                        if (permissionState === 'granted') {
+                            window.addEventListener('devicemotion', this.handleDeviceMotion.bind(this));
+                        }
+                        this.#gyroInitialized = true;
+                        this.startGame();
+                    })
+                    .catch((err) => {
+                        console.error(err);
+                        this.startGame(); // Fallback to swipe-only if denied/failed
+                    });
+                return; // Promise resolves and calls startGame
+            } else {
+                window.addEventListener('devicemotion', this.handleDeviceMotion.bind(this));
+                this.#gyroInitialized = true;
+            }
+        }
+        
+        this.startGame();
+    }
+
+    handleDeviceMotion(e) {
+        if (!this.#isPlaying || !e.rotationRate) return;
+        
+        let pitchRate = e.rotationRate.beta || 0;
+        let yawRate = e.rotationRate.alpha || 0;
+        let rollRate = e.rotationRate.gamma || 0;
+        
+        const orientation = window.orientation || 0;
+        let finalPitchRate = pitchRate;
+        let finalYawRate = yawRate;
+        
+        if (orientation === 90 || orientation === -90) {
+            finalPitchRate = rollRate * (orientation === 90 ? 1 : -1);
+            finalYawRate = yawRate; 
+        }
+        
+        // Apply with small sensitivity modifier
+        const sensitivity = 0.0005; 
+        this.applyRotation(-finalYawRate * sensitivity, -finalPitchRate * sensitivity);
     }
 
     spawnTarget() {
@@ -236,7 +337,7 @@ class Game {
 
         // Reset Title screen text for next potential play
         document.querySelector('#title-screen h1').innerText = "STAR-SPHERE SHOOTER";
-        document.querySelector('#title-screen p').innerHTML = "20秒以内に50個のターゲットを破壊せよ。<br>クリックでミッション開始。<br>マウス：エイム操作 / WASDキー：カメラ補助回転";
+        document.querySelector('#title-screen p').innerHTML = "20秒以内に50個のターゲットを破壊せよ。<br>クリック/タップでミッション開始。<br>【PC】マウス＆WASD<br>【スマホ】ジャイロ ＆ スワイプ(エイム) ＆ タップ(射撃)";
         document.getElementById('start-btn').innerText = "START MISSION";
     }
 
@@ -267,25 +368,35 @@ class Game {
         this.timeDisplay.innerText = Math.max(0, this.#timeRemaining).toFixed(1);
     }
 
+    applyRotation(yawDelta, pitchDelta) {
+        const euler = new THREE.Euler(0, 0, 0, 'YXZ');
+        euler.copy(this.camera.rotation);
+
+        euler.y += yawDelta;
+        euler.x += pitchDelta;
+        
+        // Clamp pitch to avoid flipping (-90 to 90 degrees)
+        const PI_2 = Math.PI / 2;
+        euler.x = Math.max(-PI_2 + 0.001, Math.min(PI_2 - 0.001, euler.x));
+        
+        this.camera.rotation.copy(euler);
+    }
+
     applyWASDRotation(delta) {
         if (!this.#isPlaying) return;
 
         const rotationSpeed = 2.0 * delta; // Radians per second
+        let yawDelta = 0;
+        let pitchDelta = 0;
 
-        // PointerLockControls uses 'YXZ' rotation order on the camera
-        const euler = new THREE.Euler(0, 0, 0, 'YXZ');
-        euler.copy(this.camera.rotation);
+        if (this.keys.a) yawDelta += rotationSpeed;
+        if (this.keys.d) yawDelta -= rotationSpeed;
+        if (this.keys.w) pitchDelta += rotationSpeed;
+        if (this.keys.s) pitchDelta -= rotationSpeed;
 
-        if (this.keys.a) euler.y += rotationSpeed;
-        if (this.keys.d) euler.y -= rotationSpeed;
-        if (this.keys.w) euler.x += rotationSpeed;
-        if (this.keys.s) euler.x -= rotationSpeed;
-
-        // Clamp pitch to avoid flipping (-90 to 90 degrees)
-        const PI_2 = Math.PI / 2;
-        euler.x = Math.max(-PI_2 + 0.001, Math.min(PI_2 - 0.001, euler.x));
-
-        this.camera.rotation.copy(euler);
+        if (yawDelta !== 0 || pitchDelta !== 0) {
+            this.applyRotation(yawDelta, pitchDelta);
+        }
     }
 
     animate(time) {
