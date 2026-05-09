@@ -31,8 +31,18 @@ class Game {
         this.timeDisplay = document.getElementById('time-display');
         this.scoreDisplay = document.getElementById('score-display');
         this.finalScore = document.getElementById('final-score');
+        this.mobileShootBtn = document.getElementById('mobile-shoot-btn');
         
         this.#isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
+        if (this.#isTouchDevice) {
+            this.mobileShootBtn.classList.add('active-for-touch');
+            this.mobileShootBtn.addEventListener('touchstart', (e) => {
+                e.stopPropagation(); // prevent drag logic from taking over
+                e.preventDefault();  // prevent click events
+                if (this.#isPlaying) this.shoot();
+            }, { passive: false });
+        }
 
         document.getElementById('start-btn').addEventListener('click', () => {
             if (this.#isTouchDevice) {
@@ -227,22 +237,22 @@ class Game {
     handleDeviceMotion(e) {
         if (!this.#isPlaying || !e.rotationRate) return;
         
+        // 端末のイベント間隔(ms)。取得できない場合は16ms(約60fps)と仮定
+        const dt = (e.interval || 16) / 1000;
+        
+        // 縦持ち（Portrait）固定
+        // gamma: Y軸周りの回転速度 (スマホを左右に振る)
+        // beta: X軸周りの回転速度 (スマホを上下に傾ける)
+        let yawRate = e.rotationRate.gamma || 0;
         let pitchRate = e.rotationRate.beta || 0;
-        let yawRate = e.rotationRate.alpha || 0;
-        let rollRate = e.rotationRate.gamma || 0;
         
-        const orientation = window.orientation || 0;
-        let finalPitchRate = pitchRate;
-        let finalYawRate = yawRate;
+        // deg/s を rad に変換
+        const yawDelta = THREE.MathUtils.degToRad(yawRate) * dt;
+        const pitchDelta = THREE.MathUtils.degToRad(pitchRate) * dt;
         
-        if (orientation === 90 || orientation === -90) {
-            finalPitchRate = rollRate * (orientation === 90 ? 1 : -1);
-            finalYawRate = yawRate; 
-        }
-        
-        // Apply with small sensitivity modifier
-        const sensitivity = 0.0005; 
-        this.applyRotation(-finalYawRate * sensitivity, -finalPitchRate * sensitivity);
+        // 2. スマホを右に向ける (gamma負) -> カメラも右 (yaw負) にしたいのでそのまま加算
+        // 3. スマホを上に向ける (beta負) -> カメラは上 (pitch正) にしたいので符号を反転して加算
+        this.applyRotation(yawDelta, -pitchDelta);
     }
 
     spawnTarget() {

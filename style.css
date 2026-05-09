@@ -172,6 +172,38 @@ p {
     height: 20px;
 }
 
+#mobile-shoot-btn {
+    display: none; /* Hidden by default for PC */
+    position: absolute;
+    bottom: 40px;
+    right: 40px;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    font-weight: 900;
+    box-shadow: 0 0 20px rgba(0, 210, 255, 0.4);
+    background: rgba(10, 20, 40, 0.8);
+    border: 2px solid var(--primary);
+    color: var(--primary);
+    backdrop-filter: blur(5px);
+    z-index: 100;
+    pointer-events: auto;
+    cursor: pointer;
+    text-shadow: 0 0 10px rgba(0, 210, 255, 0.5);
+}
+
+#mobile-shoot-btn.active-for-touch {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#mobile-shoot-btn:active {
+    background: rgba(0, 210, 255, 0.3);
+    transform: scale(0.95);
+}
+
 .score-display {
     font-size: 2rem;
     margin-bottom: 2rem;
