@@ -20,10 +20,12 @@
 <body>
     <div id="ui-container">
         <!-- Title Screen -->
-        <div id="title-screen" class="screen glass-panel">
-            <h1>STAR-SPHERE SHOOTER</h1>
-            <p>Destroy 20 targets in 20 seconds.<br>Click to start & lock pointer.<br>Use Mouse to aim, WASD for auxiliary rotation.</p>
-            <button id="start-btn" class="glow-btn">START MISSION</button>
+        <div id="title-screen" class="screen">
+            <div class="glass-panel">
+                <h1>STAR-SPHERE SHOOTER</h1>
+                <p>Destroy 20 targets in 20 seconds.<br>Click to start & lock pointer.<br>Use Mouse to aim, WASD for auxiliary rotation.</p>
+                <button id="start-btn" class="glow-btn">START MISSION</button>
+            </div>
         </div>
 
         <!-- HUD -->
@@ -36,12 +38,14 @@
         </div>
 
         <!-- Result Screen -->
-        <div id="result-screen" class="screen hidden glass-panel">
-            <h2>MISSION COMPLETE</h2>
-            <div class="score-display">
-                Final Score: <span id="final-score">0</span>
+        <div id="result-screen" class="screen hidden">
+            <div class="glass-panel">
+                <h2>MISSION COMPLETE</h2>
+                <div class="score-display">
+                    Final Score: <span id="final-score">0</span>
+                </div>
+                <button id="replay-btn" class="glow-btn">PLAY AGAIN</button>
             </div>
-            <button id="replay-btn" class="glow-btn">PLAY AGAIN</button>
         </div>
     </div>
 
