@@ -114,7 +114,7 @@ class Game {
                 this.hud.classList.add('hidden');
                 this.titleScreen.classList.remove('hidden');
                 document.querySelector('#title-screen h1').innerText = "PAUSED";
-                document.querySelector('#title-screen p').innerText = "Click to resume your mission.";
+                document.querySelector('#title-screen p').innerText = "クリックしてミッションを再開";
                 document.getElementById('start-btn').innerText = "RESUME";
             }
         });
@@ -204,7 +204,7 @@ class Game {
         
         // Reset Title screen text for next potential play
         document.querySelector('#title-screen h1').innerText = "STAR-SPHERE SHOOTER";
-        document.querySelector('#title-screen p').innerHTML = "Destroy 20 targets in 20 seconds.<br>Click to start & lock pointer.<br>Use Mouse to aim, WASD for auxiliary rotation.";
+        document.querySelector('#title-screen p').innerHTML = "20秒以内に20個のターゲットを破壊せよ。<br>クリックでミッション開始。<br>マウス：エイム操作 / WASDキー：カメラ補助回転";
         document.getElementById('start-btn').innerText = "START MISSION";
     }
 
