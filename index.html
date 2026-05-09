@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,7 +8,7 @@
     <meta name="description" content="A 360-degree space shooter game.">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    
+
     <script type="importmap">
         {
             "imports": {
@@ -17,13 +18,14 @@
         }
     </script>
 </head>
+
 <body>
     <div id="ui-container">
         <!-- Title Screen -->
         <div id="title-screen" class="screen">
             <div class="glass-panel">
                 <h1>STAR-SPHERE SHOOTER</h1>
-                <p>20秒以内に20個のターゲットを破壊せよ。<br>クリックでミッション開始。<br>マウス：エイム操作 / WASDキー：カメラ補助回転</p>
+                <p>20秒以内に50個のターゲットを破壊せよ。<br>クリックでミッション開始。<br>マウス：エイム操作 / WASDキー：カメラ補助回転</p>
                 <button id="start-btn" class="glow-btn">START MISSION</button>
             </div>
         </div>
@@ -52,4 +54,5 @@
     <!-- Main Game Script -->
     <script type="module" src="main.js"></script>
 </body>
+
 </html>
