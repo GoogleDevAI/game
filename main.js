@@ -211,22 +211,22 @@ class Game {
         if (this.#isPlaying) return;
 
         if (!this.#gyroInitialized) {
-            if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-                DeviceMotionEvent.requestPermission()
+            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission()
                     .then(permissionState => {
                         if (permissionState === 'granted') {
-                            window.addEventListener('devicemotion', this.handleDeviceMotion.bind(this));
+                            window.addEventListener('deviceorientation', this.handleDeviceOrientation.bind(this));
                         }
                         this.#gyroInitialized = true;
                         this.startGame();
                     })
                     .catch((err) => {
                         console.error(err);
-                        this.startGame(); // Fallback to swipe-only if denied/failed
+                        this.startGame(); // Fallback to swipe-only
                     });
-                return; // Promise resolves and calls startGame
+                return; 
             } else {
-                window.addEventListener('devicemotion', this.handleDeviceMotion.bind(this));
+                window.addEventListener('deviceorientation', this.handleDeviceOrientation.bind(this));
                 this.#gyroInitialized = true;
             }
         }
@@ -234,25 +234,41 @@ class Game {
         this.startGame();
     }
 
-    handleDeviceMotion(e) {
-        if (!this.#isPlaying || !e.rotationRate) return;
-        
-        // 端末のイベント間隔(ms)。取得できない場合は16ms(約60fps)と仮定
-        const dt = (e.interval || 16) / 1000;
-        
-        // 縦持ち（Portrait）固定
-        // gamma: Y軸周りの回転速度 (スマホを左右に振る)
-        // beta: X軸周りの回転速度 (スマホを上下に傾ける)
-        let yawRate = e.rotationRate.gamma || 0;
-        let pitchRate = e.rotationRate.beta || 0;
-        
-        // deg/s を rad に変換
-        const yawDelta = THREE.MathUtils.degToRad(yawRate) * dt;
-        const pitchDelta = THREE.MathUtils.degToRad(pitchRate) * dt;
-        
-        // 2. スマホを右に向ける (gamma負) -> カメラも右 (yaw負) にしたいのでそのまま加算
-        // 3. スマホを上に向ける (beta負) -> カメラは上 (pitch正) にしたいので符号を反転して加算
-        this.applyRotation(yawDelta, -pitchDelta);
+    handleDeviceOrientation(e) {
+        if (!this.#isPlaying) return;
+
+        const alpha = e.alpha; // 水平回転（Z軸） 0〜360
+        const beta  = e.beta;  // 前後傾き（X軸） -180〜180
+        const gamma = e.gamma; // 左右傾き（Y軸） -90〜90
+
+        if (alpha === null || beta === null || gamma === null) return;
+
+        // 初回: 現在の向きを「基準ゼロ点」として記録
+        if (this.gyroBaseline === undefined) {
+            this.gyroBaseline = { alpha, beta, gamma };
+            this.previousGyro = { alpha, beta, gamma };
+            return;
+        }
+
+        // 前フレームからの差分を計算
+        let dAlpha = alpha - this.previousGyro.alpha;
+        let dGamma = gamma - this.previousGyro.gamma;
+
+        // 360度境界の補正
+        if (dAlpha >  180) dAlpha -= 360;
+        if (dAlpha < -180) dAlpha += 360;
+
+        this.previousGyro = { alpha, beta, gamma };
+
+        // スマホ縦持ち想定:
+        //   alpha変化 → 水平（左右）エイム → カメラのYaw
+        //   gamma変化 → 垂直（上下）エイム → カメラのPitch
+        const sensitivity = 0.012; // 感度調整（好みで変更）
+
+        const yawDelta   = -THREE.MathUtils.degToRad(dAlpha) * (sensitivity / 0.005);
+        const pitchDelta = -THREE.MathUtils.degToRad(dGamma) * (sensitivity / 0.005);
+
+        this.applyRotation(yawDelta, pitchDelta);
     }
 
     spawnTarget() {
@@ -292,6 +308,12 @@ class Game {
         this.#isPlaying = true;
         this.#lastTime = performance.now();
         this.#currentSessionStartTime = new Date();
+
+        // ジャイロ基準点をリセット（再プレイ時に前回の向きを引き継がない）
+        this.gyroBaseline = undefined;
+        this.previousGyro = undefined;
+        this.previousAlpha = undefined; // 旧コードの残滓も削除
+        this.previousBeta  = undefined;
 
         this.updateScoreDisplay();
         this.updateTimeDisplay();
